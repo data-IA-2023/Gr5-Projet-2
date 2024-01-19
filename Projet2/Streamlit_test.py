@@ -10,19 +10,23 @@ path = "https://raw.githubusercontent.com/remijul/dataset/master/SMSSpamCollecti
 data = pd.read_csv(path, names = ["flag", "text"], sep='\t')
 pipe = data.drop_duplicates(inplace=True)
 data.dropna(inplace=True)
+datasl = data
 
-data["longeur du document"] = data["text"].str.split(r"(?!^)").str.len()
-data["nombre des mots"] = data["text"].str.split().str.len()
+datasl["longeur du document"] = datasl["text"].str.split(r"(?!^)").str.len()
+datasl["nombre des mots"] = datasl["text"].str.split().str.len()
 
 with st.sidebar:
     add_radio = st.radio(
-        "Choisisez ham ou spam",
-        ("Spam", "Ham")
+        "Choisissez ham ou spam",
+        ("spam", "ham")
     )
-if add_radio == "Spam":
-    st.write(data[data["flag"]== "spam"])
-else:
-    st.write(data[data["flag"]== "ham"])
+    slide_radio = st.slider(
+        "Choisissez le nombre des messages affichés",
+        min_value = 0, max_value = len(datasl[datasl["flag"] == add_radio])
+    )
+if add_radio == "spam":
+    
+
 corpus = data["text"]
 vectorizertf = TfidfVectorizer()
 vectorizerCV = CountVectorizer()
