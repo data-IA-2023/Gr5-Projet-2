@@ -6,7 +6,7 @@ data = pd.read_csv(path, names = ["flag", "text"], sep='\t')
 preprocess(data)
 
 pipel = Pipeline(steps=[
-                        ('vectorisation', CountVectorizer(ngram_range=(2,4))),
+                        ('vectorisation', CountVectorizer()),
                         ('pcaisation', TruncatedSVD(n_components=200)),
                         ('modelisation', LogisticRegression())
                         ])
