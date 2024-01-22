@@ -5,6 +5,7 @@ from sklearn.metrics import accuracy_score
 from sklearn.feature_extraction.text import TfidfVectorizer,CountVectorizer
 from sklearn.linear_model import LogisticRegression
 from sklearn.pipeline import Pipeline
+from sklearn.decomposition import PCA
 
 #preprocessing
 path = "https://raw.githubusercontent.com/remijul/dataset/master/SMSSpamCollection"
@@ -17,9 +18,7 @@ pipe = Pipeline(steps=[
                        ('vectorization', CountVectorizer()),
                        ('modelisation', LogisticRegression())
                        ])
-
-#corpus = data["text"]
-X =data["text"]
+X =data["text"] #corpus
 y = data["flag"]
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state= 3)
 pipe.fit(X_train,y_train)
