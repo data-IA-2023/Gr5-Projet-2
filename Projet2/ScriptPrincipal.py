@@ -17,85 +17,68 @@ sm = SMOTENC(categorical_features = ['text'], random_state= 3)
 X = data.drop("Flag", axis = 1, inplace=False)
 # Target
 y = data['Flag']
-# Train Test Split
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3)
 
+# Train Test Split
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, stratify=y)
+
+# Variables resamples pour Smote
+X_smoted, y_smoted = sm.fit_resample(X_train, y_train)
+
+# Transformer
 preparation = ColumnTransformer(
     transformers=[
         ('data_cat', CountVectorizer(), "text"),
         ('data_num', RobustScaler(), ["LEN","NB"])
 ])
 
+# Pipeline
 pipel = Pipeline(steps=[
                         ('vector/Scale', preparation),
                         ('modelisation', DecisionTreeClassifier())
                         ])
-                        
+
+# Dictionnaire pour GridSearch                        
 params = {
     'modelisation': [LogisticRegression(), KNeighborsClassifier(), DecisionTreeClassifier()],
 }
+
 
 scorer = {'accuracy': 'accuracy', 'recall': make_scorer(recall_score, pos_label='spam')}
 searchCV = GridSearchCV(pipel, params, scoring=scorer, refit='recall')
 
 
-searchCV.fit(X_train,y_train)
-y_pred = searchCV.predict(X_test)
+searchCV.fit(X_smoted,y_smoted)
 
-print("Prediction with Count Vectorizer and the best model:", searchCV.best_score_)
+st.write('Explorations de données')
 
-#print("Prediction with Count Vectorizer et Logistic Regression:", recall_score(y_test, y_pred, pos_label='spam'))
+with st.sidebar:
+    add_radio = st.radio(
+        "Ham ou Spam ?",
+        ("spam", "ham")
+    )
+    charting = st.radio(
+        "Longueur des messages ou longueur des caractères ?",
+        ("LEN", "NB")
+    )
+    nom_mess = st.slider(
+        "Choisir le nombre de messages affichés",
+        min_value = 0, max_value = len(data[data["Flag"] == add_radio])
 
+    )
 
-"""def find(x):
-    if x == 1:
-        print ("Message is SPAM")
-    else:
-        print ("Message is NOT Spam")"""
+# Exploration de données
 
+datafilter = data[data["Flag"] == add_radio].head(nom_mess)
+st.dataframe(datafilter)
+st.bar_chart(datafilter[charting])
 
+st.write("Pour la prédiction d'un nouveau message")
+txt = st.text_input('Veuillez entrer votre message', 'mail')
+lennn = len(re.split((r"(?!^)"), txt))
+nomnom = len(re.split(" ", txt))
+newmail  = pd.DataFrame.from_dict({"text": [txt], "LEN": [lennn], "NB": [nomnom]})
+bestscore = round(searchCV.best_score_,3)
+st.write(f"Le modèle de machine learning possède {bestscore} % de précision")
 
-
-#print("Prediction with Count Vectorizer et Logistic Regression:", recall_score(y_test, y_pred, pos_label='spam'))
-
-#print(confusion_matrix(y_test, y_pred))
-
-#lb_encod = LabelEncoder()
-#cm_plot = ConfusionMatrixDisplay(confusion_matrix,
-#                                display_labels=np.unique(lb_encod.inverse_transform(model.classes_)))
-
-#cm_plot.plot()
-"""
-TP = sum((y_test == 'spam') & (y_pred == 'spam'))
-print(TP)
-
-FN = sum((y_test == 'spam') & (y_pred == 'ham'))
-print(FN)
-
-print(TP / (TP + FN))"""
-
-
-# Test TFIDF et KNN | TFIDF et Logistic regression | CountVectorizer et KNN. Moins précis
-"""X = vectorizertf.fit_transform(corpus)
-y = data['flag']
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state= 3)
-model = KNeighborsClassifier(3)
-model.fit(X_train,y_train)
-y_predtf = model.predict(X_test)
-print("MAE with TF-IDF et KNN:", accuracy_score(y_test, y_predtf))
-
-X = vectorizertf.fit_transform(corpus)
-y = data['flag']
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state= 3)
-model = LogisticRegression(random_state=5)
-model.fit(X_train,y_train)
-y_predtf = model.predict(X_test)
-print("MAE with TF-IDF Logistic Regression:", accuracy_score(y_test, y_predtf))
-
-X = vectorizerCV.fit_transform(corpus)
-y = data['flag']
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state= 3)
-model = KNeighborsClassifier(3)
-model.fit(X_train,y_train)
-y_predCV = model.predict(X_test)
-print("MAE with Count Vectorizer et KNN:", accuracy_score(y_test, y_predCV))"""
+if st.button("Apuyez ici pour prédir avec notre modèle si le message reçu est un spam ou un ham (message normal)"):
+    st.write(f"Le mail est un: {searchCV.predict(newmail)[0]}")
