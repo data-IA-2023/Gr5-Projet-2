@@ -56,17 +56,29 @@ grid = GridSearchCV(model, params, scoring=scorers, refit = "recall")
 
 grid.fit(X_smot,y_smot)
 
+st.write("Exploration des données:")
+
 with st.sidebar:
     add_radio = st.radio(
         "Choisissez ham ou spam",
         ("spam", "ham")
     )
+    charting = st.radio(
+        "Montrer la longeur des messages ou les nombre des charactères?",
+        ("len", "nb")
+    )
     nom_mess = st.slider(
         "Choisissez le nombre des messages affichés",
         min_value = 0, max_value = len(data[data["flag"] == add_radio])
-    )
 
-st.write(data[data["flag"] == add_radio].head(nom_mess))
+    )
+#exploration des donnees
+datafiltre = data[data["flag"] == add_radio].head(nom_mess)
+st.dataframe(datafiltre)
+st.bar_chart(datafiltre[charting])
+
+
+st.write("Pour la prédiction d'un nouveau mail: ")
 txt = st.text_input('Introduisez un mail', 'mail')
 leng = len(re.split((r"(?!^)"), txt))
 nom = len(re.split(" ", txt))
@@ -76,3 +88,4 @@ st.write(f"Le model de Machine Learning est trainé avec un score de {bestscore}
 
 if st.button("Apuyez ici pour prédir avec notre modèle si le mail que vous avez ecrit est un spam ou un veritable mail(ham)"):
     st.write(f"Le mail est un: {grid.predict(newmail)[0]}")
+
