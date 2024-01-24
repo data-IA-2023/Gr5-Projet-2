@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 import re
 from sklearn.model_selection import train_test_split, GridSearchCV
-from sklearn.metrics import recall_score, accuracy_score
+from sklearn.metrics import recall_score
 from sklearn.feature_extraction.text import CountVectorizer,TfidfVectorizer
 from sklearn.linear_model import LogisticRegression
 from sklearn.neighbors import KNeighborsClassifier
@@ -12,7 +12,6 @@ from sklearn.compose import ColumnTransformer
 from sklearn.preprocessing import RobustScaler
 from sklearn.metrics import make_scorer
 from imblearn.over_sampling import SMOTENC
-from imblearn.ensemble import BalancedBaggingClassifier
 import streamlit as st
 
 # preprocessing
@@ -72,6 +71,8 @@ txt = st.text_input('Introduisez un mail', 'mail')
 leng = len(re.split((r"(?!^)"), txt))
 nom = len(re.split(" ", txt))
 newmail  = pd.DataFrame.from_dict({"text": [txt], "len": [leng], "nb": [nom]})
+bestscore = round(grid.best_score_,3)
+st.write(f"Le model de Machine Learning est trainé avec un score de {bestscore} % de precision")
 
-if st.button("Predict"):
-    st.write(grid.predict(newmail)[0])
+if st.button("Apuyez ici pour prédir avec notre modèle si le mail que vous avez ecrit est un spam ou un veritable mail(ham)"):
+    st.write(f"Le mail est un: {grid.predict(newmail)[0]}")
